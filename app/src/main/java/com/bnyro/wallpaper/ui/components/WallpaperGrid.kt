@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -109,19 +110,17 @@ fun WallpaperGrid(
                 ElevatedCard(
                     modifier = Modifier
                         .aspectRatio(9 / 16f)
-                        .clip(shape)
                         .clickable {
                             onClickWallpaper(index)
-                        }
+                        },
+                    shape = shape
                 ) {
                     Box {
                         AsyncImage(
                             model = ImageHelper.buildRequest(context, wallpaper.preview),
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(shape)
+                            modifier = Modifier.fillMaxSize()
                         )
                         Box(
                             Modifier
