@@ -3,10 +3,14 @@ package com.bnyro.wallpaper.util
 import android.app.WallpaperManager
 import android.content.Context
 import android.graphics.Bitmap
+import android.hardware.display.DisplayManager
 import android.os.Build
 import android.util.DisplayMetrics
+import android.view.Display
+import android.view.Surface
 import android.view.WindowManager
 import androidx.annotation.RequiresApi
+import androidx.core.content.getSystemService
 import com.bnyro.wallpaper.enums.ResizeMethod
 import com.bnyro.wallpaper.enums.WallpaperTarget
 import kotlinx.coroutines.Dispatchers
@@ -65,10 +69,11 @@ object WallpaperHelper {
         }
     }
 
+    /** The display size in its natural orientation, which is how a wallpaper is stored. */
     private fun getMetrics(context: Context): Pair<Int, Int> {
         val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
 
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        val (width, height) = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             windowManager.currentWindowMetrics.bounds.let { it.width() to it.height() }
         } else {
             val metrics = DisplayMetrics()
@@ -76,6 +81,20 @@ object WallpaperHelper {
             windowManager.defaultDisplay.getMetrics(metrics)
             metrics.widthPixels to metrics.heightPixels
         }
+
+        // `width` and `height` depend on the current screen orientation. To get the real metrics,
+        // we additionally check the current rotation of the display.
+        return when (getDisplayRotation(context)) {
+            Surface.ROTATION_90, Surface.ROTATION_270 -> height to width
+            else -> width to height
+        }
+    }
+
+    private fun getDisplayRotation(context: Context): Int {
+        val display = context.getSystemService<DisplayManager>()
+            ?.getDisplay(Display.DEFAULT_DISPLAY)
+
+        return display?.rotation ?: Surface.ROTATION_0
     }
 
     private fun resizeBitmapByPreference(context: Context, bitmap: Bitmap): Bitmap {
